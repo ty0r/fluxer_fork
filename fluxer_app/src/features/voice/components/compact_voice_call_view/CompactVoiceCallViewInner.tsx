@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import {MusicButton} from '@app/features/music/components/MusicButton';
+import {MusicPanel} from '@app/features/music/components/MusicPanel';
 import FocusRing from '@app/features/ui/focus_ring/FocusRing';
 import ContextMenu, {isContextMenuNodeTarget} from '@app/features/ui/state/ContextMenu';
 import KeyboardMode from '@app/features/ui/state/KeyboardMode';
@@ -522,6 +524,9 @@ export const CompactVoiceCallViewInner: React.FC<CompactVoiceCallViewProps> = ob
 					fullscreenLabel={fullscreenButtonLabel}
 					fullscreenIcon={FullscreenButtonIcon}
 					onToggleFullscreen={handleToggleVoiceCallAppFullscreen}
+					extraControls={
+						<MusicButton data-flx="voice.compact-voice-call-view.compact-voice-call-view-inner.music-button" />
+					}
 					volumeControl={
 						<FocusedStreamVolumeControl
 							track={layoutMode === 'focus' ? focusMainTrack : null}
@@ -532,6 +537,7 @@ export const CompactVoiceCallViewInner: React.FC<CompactVoiceCallViewProps> = ob
 					}
 					data-flx="voice.compact-voice-call-view.compact-voice-call-view-inner.voice-call-corner-controls"
 				/>
+				<MusicPanel data-flx="voice.compact-voice-call-view.compact-voice-call-view-inner.music-panel" />
 				{shouldRenderPoppedOutOverlay(poppedOutTransition.snapshot) && (
 					<PoppedOutOverlay
 						popoutKey={getVoiceCallPopoutKey(channel.id)}
