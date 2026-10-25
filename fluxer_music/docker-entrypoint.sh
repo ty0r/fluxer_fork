@@ -17,4 +17,10 @@ else
 	export YTDLP_BIN=/opt/ytdlp/bin/yt-dlp
 fi
 
+# yt-dlp writes refreshed cookies back to its cookies file on exit, and fails on the
+# read-only secrets mount. Give it a private, writable copy in the tmpfs instead.
+if [ -r /run/music-secrets/yt-cookies.txt ]; then
+	(umask 077 && cp /run/music-secrets/yt-cookies.txt /tmp/yt-cookies.txt) && export YTDLP_COOKIES=/tmp/yt-cookies.txt
+fi
+
 exec node dist/Main.js
