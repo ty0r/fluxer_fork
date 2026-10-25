@@ -24,7 +24,8 @@ services:
       SPOTIFY_CLIENT_SECRET: ${SPOTIFY_CLIENT_SECRET:-}
     volumes:
       - music-ytdlp:/var/lib/ytdlp
-      - ../../../../secrets:/run/music-secrets:ro
+      # Outside the checkout: build contexts are the repo root, so secrets must never live there.
+      - /srv/fluxer/music-secrets:/run/music-secrets:ro
     healthcheck: {test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8099/healthz').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"], interval: 30s, timeout: 5s, retries: 3, start_period: 120s}
     deploy: {resources: {limits: {memory: 768mb}}}
 
