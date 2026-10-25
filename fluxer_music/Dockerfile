@@ -7,6 +7,9 @@ WORKDIR /usr/src/app
 RUN npm install -g pnpm@11.27.0
 
 COPY . .
+# The deployed checkout strips "other" permissions (0750/0640); the runtime user is
+# not the file owner, so make everything copied into the image world-readable.
+RUN chmod -R a+rX .
 
 RUN pnpm --filter @fluxer/music... install --frozen-lockfile
 RUN pnpm --filter @fluxer/music run build
@@ -37,7 +40,7 @@ WORKDIR /app
 COPY --from=build /out/node_modules ./node_modules
 COPY --from=build /out/package.json ./package.json
 COPY --from=build /usr/src/app/fluxer_music/dist ./dist
-COPY fluxer_music/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+COPY --chmod=0755 fluxer_music/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 ENV NODE_ENV=production
 ENV HOME=/tmp
