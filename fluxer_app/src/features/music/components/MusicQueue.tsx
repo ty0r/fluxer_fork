@@ -7,6 +7,7 @@ import MusicStore from '@app/features/music/state/MusicStore';
 import * as ModalCommands from '@app/features/ui/commands/ModalCommands';
 import {modal} from '@app/features/ui/commands/ModalCommands';
 import Users from '@app/features/user/state/Users';
+import {useStoreVersion} from '@app/features/voice/engine/Store';
 import type {MusicState, Track} from '@fluxer/music_protocol/src/Types';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
@@ -108,6 +109,7 @@ interface MusicQueueProps {
 }
 
 export const MusicQueue = observer(function MusicQueue({state}: MusicQueueProps) {
+	useStoreVersion(MusicStore);
 	const {i18n} = useLingui();
 	const [loaded, setLoaded] = useState<{key: string; tracks: Array<Track>}>({key: '', tracks: []});
 	const [loading, setLoading] = useState(false);

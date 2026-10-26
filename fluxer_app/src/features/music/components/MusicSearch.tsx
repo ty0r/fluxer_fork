@@ -3,6 +3,7 @@
 import styles from '@app/features/music/components/MusicPanel.module.css';
 import {formatDuration} from '@app/features/music/components/NowPlaying';
 import MusicStore from '@app/features/music/state/MusicStore';
+import {useStoreVersion} from '@app/features/voice/engine/Store';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
 import {observer} from 'mobx-react-lite';
@@ -32,6 +33,7 @@ interface MusicSearchProps {
 }
 
 export const MusicSearch = observer(function MusicSearch({startMode = false}: MusicSearchProps) {
+	useStoreVersion(MusicStore);
 	const {i18n} = useLingui();
 	const [input, setInput] = useState('');
 	const submit = () => {

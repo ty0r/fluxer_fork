@@ -2,6 +2,7 @@
 
 import styles from '@app/features/music/components/MusicPanel.module.css';
 import MusicStore from '@app/features/music/state/MusicStore';
+import {useStoreVersion} from '@app/features/voice/engine/Store';
 import type {LoopMode, MusicState} from '@fluxer/music_protocol/src/Types';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
@@ -43,6 +44,7 @@ interface MusicControlsProps {
 }
 
 export const MusicControls = observer(function MusicControls({state}: MusicControlsProps) {
+	useStoreVersion(MusicStore);
 	const {i18n} = useLingui();
 	const paused = state.status === 'paused';
 	const loopLabel = LOOP_LABELS[state.loop];
