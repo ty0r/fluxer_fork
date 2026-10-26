@@ -1,19 +1,34 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-FROM node:26-trixie-slim AS build
+FROM node:26-trixie-slim AS manifests
 
 WORKDIR /usr/src/app
 
-RUN npm install -g pnpm@11.27.0
+RUN npm install -g pnpm@11.27.0 && pnpm config set store-dir /pnpm/store
 
-COPY . .
+# Only the manifests, so a source change keeps the dependency layers cached. The pnpm
+# store is a BuildKit cache, so a lockfile change only fetches the new packages.
 # The deployed checkout strips "other" permissions (0750/0640); the runtime user is
-# not the file owner, so make everything copied into the image world-readable.
+# not the file owner, so everything copied into the image is made world-readable.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY patches/ ./patches/
+COPY fluxer_music/package.json ./fluxer_music/
+COPY packages/music_protocol/package.json ./packages/music_protocol/
 RUN chmod -R a+rX .
 
-RUN pnpm --filter @fluxer/music... install --frozen-lockfile
+# Production node_modules for the runtime image; depends on the manifests only.
+FROM manifests AS prod-deps
+RUN --mount=type=cache,id=fluxer-music-pnpm,target=/pnpm/store \
+	pnpm --filter @fluxer/music... install --frozen-lockfile && \
+	pnpm --filter @fluxer/music deploy --legacy --prod --config.allow-unused-patches=true /out
+
+FROM manifests AS build
+RUN --mount=type=cache,id=fluxer-music-pnpm,target=/pnpm/store \
+	pnpm --filter @fluxer/music... install --frozen-lockfile
+COPY tsconfigs/ ./tsconfigs/
+COPY packages/music_protocol/ ./packages/music_protocol/
+COPY fluxer_music/ ./fluxer_music/
 RUN pnpm --filter @fluxer/music run build
-RUN pnpm --filter @fluxer/music deploy --legacy --prod --config.allow-unused-patches=true /out
 
 FROM node:26-trixie-slim
 
@@ -37,8 +52,8 @@ RUN useradd --uid 10001 --no-create-home --shell /usr/sbin/nologin music && \
 
 WORKDIR /app
 
-COPY --from=build /out/node_modules ./node_modules
-COPY --from=build /out/package.json ./package.json
+COPY --from=prod-deps /out/node_modules ./node_modules
+COPY --from=prod-deps /out/package.json ./package.json
 COPY --from=build /usr/src/app/fluxer_music/dist ./dist
 COPY --chmod=0755 fluxer_music/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
